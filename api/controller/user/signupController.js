@@ -1,7 +1,8 @@
 import User from "../../models/userSchema.js";
 import bcryptjs from 'bcryptjs';
 import { errorHandler } from "../../utils/error.js";
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
+import generator from 'generate-password';
 
 
 export const signup = async (req,res,next) =>{
@@ -43,4 +44,50 @@ export const signin = async (req,res,next)=>{
         } catch (error) {
             next(error)
         }
+}
+
+
+export const google = async (req, res, next) => {
+    const { username, email, profilePicture } = req.body;
+    try {
+        const user = await User.findOne({email});
+        if(user){
+            const token = jwt.sign({id:user._id}, process.env.JWT_SECRET, { expiresIn: '1h' });
+            const {password:hashedPassword, ...rest} = user._doc;
+            
+            return res.cookie('token', token, {httpOnly:true})
+                .status(200)
+                .json(rest);
+        } else {
+            const generatedPassword = generator.generate({
+                length: 12,
+                numbers: true,
+                symbols: true,
+            });
+
+            const hashedPassword = await bcryptjs.hash(generatedPassword, 10);
+            const displayName = username.split(" ").join("") + Math.floor(Math.random() * 1000);
+
+            const newUser = new User({
+                username: displayName,
+                email,
+                password: hashedPassword,
+                profilePicture,
+            });
+
+            await newUser.save();
+
+            const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+            const {password: hashedPassword2, ...rest} = newUser._doc;
+
+            return res.cookie('token', token, {
+                httpOnly: true,
+            })
+            .status(200)
+            .json(rest);
+        }
+    } catch (error) {
+        next(errorHandler(500, `Google Auth Error: ${error.message}`));
+    }
+
 }
