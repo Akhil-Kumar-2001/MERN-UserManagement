@@ -8,7 +8,7 @@ type InitialStateType = {
     adminStatus: boolean;
     adminLoading: boolean;
     error: boolean | null;
-    userDetails: currentUserType[];
+    userDetails: currentUserType[] ;
   
   };
   
@@ -17,7 +17,7 @@ type InitialStateType = {
     adminLoading: false,
     error: false,
     userDetails: [],
-  
+    
   };
   
   const adminSlice = createSlice({

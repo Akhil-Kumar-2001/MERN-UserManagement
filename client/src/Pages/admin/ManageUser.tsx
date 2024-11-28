@@ -24,6 +24,7 @@ const ManageUser: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const handleGetUserDetails = async () => {
+
     try {
       dispatch(fetchUserDetailsStart());
       let res = await fetch("http://localhost:3321/api/admin/user", {
@@ -70,11 +71,13 @@ const ManageUser: React.FC = () => {
       dispatch(deleteUserFailure(error));
     }
   };
-
-  const filteredUsers = userDetails.filter((user: any) =>
+  let filteredUsers: any = [];
+if (Array.isArray(userDetails)) {
+  filteredUsers = userDetails.filter((user: any) =>
     user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+}
 
   return (
     <div className="bg-gray-900 min-h-screen flex items-center justify-center">
@@ -138,7 +141,7 @@ const ManageUser: React.FC = () => {
                       onClose={() => setEditUserId(null)}
                       onUserUpdated={(updatedUser) =>
                         dispatch(updateUserSuccess(updatedUser))
-                      }
+                      } 
                     />
                   )}
                 </td>
