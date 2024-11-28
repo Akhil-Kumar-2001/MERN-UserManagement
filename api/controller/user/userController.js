@@ -1,6 +1,8 @@
 import User from "../../models/userSchema.js";
 import { errorHandler } from "../../utils/error.js";
 import bcryptjs from 'bcryptjs'
+import fs from 'fs';
+import path from 'path';
 
 export const test = (req,res)=>{
     res.json({
@@ -10,30 +12,58 @@ export const test = (req,res)=>{
 
 //update user
 
-export const updateUser = async (req,res,next) => {
+export const updateUser = async (req, res, next) => {
     if(req.user.id != req.params.id){
-        return next(errorHandler(401,"You can update only your account"))
+        // Clean up uploaded file if unauthorized
+        if (req.file) {
+            fs.unlinkSync(req.file.path);
+        }
+        return next(errorHandler(401, "You can update only your account"))
     }
     try {
+        // Prepare update object
+        const updateData = {
+            username: req.body.username,
+            email: req.body.email
+        };
+
+        // Handle password update
         if(req.body.password) {
-            req.body.password = await bcryptjs.hash(req.body.password,10);
-
+            updateData.password = await bcryptjs.hash(req.body.password, 10);
         }
-        const updateUser = await User.findByIdAndUpdate(
-            req.params.id,{
-                $set:{
-                    username:req.body.username,
-                    email:req.body.email,
-                    password:req.body.password,
-                    profilePicture:req.body.profilePicture,
 
+        // Handle profile picture update
+        if (req.file) {
+            // Delete old profile picture if it exists (except default)
+            const user = await User.findById(req.params.id);
+            if (user.profilePicture && 
+                !user.profilePicture.includes('shutterstock.com')) {
+                const oldImagePath = path.join(process.cwd(), 'uploads/profiles', 
+                    path.basename(user.profilePicture));
+                if (fs.existsSync(oldImagePath)) {
+                    fs.unlinkSync(oldImagePath);
                 }
-            },
-            {new:true}
+            }
+
+            // Set new profile picture path
+            updateData.profilePicture = `/uploads/profiles/${req.file.filename}`;
+        }
+
+        // Update user
+        const updatedUser = await User.findByIdAndUpdate(
+            req.params.id,
+            { $set: updateData },
+            { new: true }
         );
-        const {password,...rest} = updateUser._doc;
-        res.status(200).json(rest)
+
+        // Remove password from response
+        const { password, ...rest } = updatedUser._doc;
+        res.status(200).json(rest);
     } catch (error) {
+        // Clean up uploaded file if error occurs
+        if (req.file) {
+            fs.unlinkSync(req.file.path);
+        }
         next(error);  
     }
 }

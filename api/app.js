@@ -6,8 +6,14 @@
     import connectDB  from './Congfig/dbConnection.js';
     import cookieParser from 'cookie-parser';
     import cors from 'cors'
+    import path from 'path'
 
     // Backend port 3321
+
+
+    // For ES modules, use import.meta.url instead of __dirname
+const __filename = new URL(import.meta.url).pathname;
+const __dirname = path.dirname(__filename);
 
 
     const app = express();
@@ -18,6 +24,10 @@
     }))
     app.use(express.urlencoded({ extended: true }));
     const PORT = process.env.PORT || 7227
+
+    // Serve static files for uploads
+    // app.use('/api/uploads/profiles', express.static(path.join(__dirname, 'uploads', 'profiles')));
+    app.use('/api/uploads/profiles', express.static(path.join(__dirname, 'uploads', 'profiles')));
 
     connectDB()
 
