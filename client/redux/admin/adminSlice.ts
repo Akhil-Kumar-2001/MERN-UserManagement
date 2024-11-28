@@ -63,6 +63,48 @@ type InitialStateType = {
         state.adminLoading=false;
         state.error=action.payload;
     },
+    editUserStart: (state) => {
+      state.error = false;
+      state.adminLoading = true;
+    },
+    editUserSuccess: (state, action) => {
+      state.userDetails = state.userDetails.map((user: currentUserType) =>
+        user._id === action.payload.userDetail._id 
+          ? { ...user, ...action.payload.userDetail } 
+          : user
+      );
+      state.adminLoading = false;
+    },
+    editUserFailure: (state,action) => {
+      state.error = action.payload;
+      state.adminLoading = false;
+    },
+    updateUserSuccess: (state, action) => {
+      const updatedUser = action.payload;
+      state.userDetails = state.userDetails.map(user =>
+        user._id === updatedUser._id ? updatedUser : user
+      );
+    },
+    addUserStart: (state) => {
+      state.error = false;
+      state.adminLoading = true;
+    },
+    addUserSuccess: (state, action) => {
+     
+      state.adminLoading = false;
+      state.userDetails=[action.payload.newUser,...state.userDetails]
+    },
+    addUserFailure: (state,action) => {
+      state.error = action.payload;
+      state.adminLoading = false;
+    },
+    adminSignOut: (state) => {
+      state.adminStatus = false;
+      state.adminLoading = false;
+      state.error = false;
+      state.userDetails = [];  
+    },
+    
   }});
   
   export const {
@@ -75,6 +117,14 @@ type InitialStateType = {
     deleteUserStart,
     deleteUserSuccess,
     deleteUserFailure,
+    editUserStart,
+    editUserSuccess,
+    editUserFailure,
+    updateUserSuccess,
+    addUserStart,
+    addUserFailure,
+    addUserSuccess,
+    adminSignOut
 
     
   } = adminSlice.actions;

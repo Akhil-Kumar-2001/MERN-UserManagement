@@ -1,9 +1,9 @@
-export type currentUserType = {
-    _id:string,
-    userName:string,
-    userEmail:string,
-    password?:string,
-    profilePic?: string
+export type currentUserType={
+    username?:string;
+    email?:string;
+    profilePicture?: string;
+    password?:string;
+    _id?:string;
 }
 
 export type ErrorType = {
